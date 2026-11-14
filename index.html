@@ -18,6 +18,9 @@
   <meta name="twitter:title" content="Dott. Emanuele Lisena – Prenota un appuntamento">
   <meta name="twitter:description" content="Prenota online il tuo appuntamento presso Igea Salus – Studio Polispecialistico, Via Gela 39, Roma.">
   <meta name="twitter:image" content="https://igeasalus.github.io/anteprima.jpg">
+  <link rel="preconnect" href="https://script.google.com">
+  <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
+  <link rel="preload" as="image" href="foto.webp">
   <style>
     html, body { margin: 0; width: 100%; height: 100%; background: #f3f6fa; }
     iframe {
@@ -26,12 +29,67 @@
       height: calc(100% - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
       border: 0; display: block; background: #f3f6fa;
     }
+    #splash {
+      position: fixed; inset: 0; z-index: 5; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 6px; padding: 24px; box-sizing: border-box;
+      background: #f3f6fa; transition: opacity .3s ease;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    }
+    #splash.nascosto { opacity: 0; pointer-events: none; }
+    .splash-foto {
+      width: 120px; height: 160px; margin-bottom: 14px; border-radius: 16px; object-fit: cover; object-position: center top;
+      background: #dce8f3; border: 1px solid rgba(35,90,135,.12); box-shadow: 0 3px 9px rgba(35,65,95,.12);
+    }
+    .splash-nome { margin: 0; color: #203b55; font-size: 20px; font-weight: 750; text-align: center; }
+    .splash-studio { margin: 0; color: #62758a; font-size: 14px; text-align: center; }
+    .splash-attesa { display: flex; align-items: center; gap: 10px; margin-top: 22px; color: #52677c; font-size: 14px; }
+    .splash-rotella {
+      width: 18px; height: 18px; border: 3px solid #cfe0ef; border-top-color: #2875b9; border-radius: 50%;
+      animation: gira .9s linear infinite;
+    }
+    @keyframes gira { to { transform: rotate(360deg); } }
   </style>
 </head>
 <body>
-  <iframe src="https://script.google.com/macros/s/AKfycbyk8CSBSEgTDR1aJzRs1hik5iQAEirIeQuAkSlvHOzjHKwfnDzHE4RNIl4ioSAcYfI/exec" title="Prenota il tuo appuntamento"></iframe>
+  <iframe id="agenda" src="https://script.google.com/macros/s/AKfycbyk8CSBSEgTDR1aJzRs1hik5iQAEirIeQuAkSlvHOzjHKwfnDzHE4RNIl4ioSAcYfI/exec" title="Prenota il tuo appuntamento"></iframe>
+
+  <div id="splash" role="status" aria-live="polite">
+    <img class="splash-foto" src="foto.webp" alt="Dott. Emanuele Lisena">
+    <h1 class="splash-nome">Dott. Emanuele Lisena</h1>
+    <p class="splash-studio">Igea Salus – Studio Polispecialistico</p>
+    <div class="splash-attesa"><span class="splash-rotella" aria-hidden="true"></span><span>Sto aprendo l'agenda…</span></div>
+  </div>
+
   <noscript>
-    <p style="padding:20px;font-family:sans-serif">Per prenotare apri questo link: <a href="https://script.google.com/macros/s/AKfycbyk8CSBSEgTDR1aJzRs1hik5iQAEirIeQuAkSlvHOzjHKwfnDzHE4RNIl4ioSAcYfI/exec">prenota il tuo appuntamento</a>.</p>
+    <p style="position:relative;z-index:10;padding:20px;font-family:sans-serif">Per prenotare apri questo link: <a href="https://script.google.com/macros/s/AKfycbyk8CSBSEgTDR1aJzRs1hik5iQAEirIeQuAkSlvHOzjHKwfnDzHE4RNIl4ioSAcYfI/exec">prenota il tuo appuntamento</a>.</p>
   </noscript>
+
+  <script>
+    (function () {
+      var splash = document.getElementById("splash");
+      var agenda = document.getElementById("agenda");
+      var nascosta = false;
+
+      function nascondi() {
+        if (nascosta) return;
+        nascosta = true;
+        splash.classList.add("nascosto");
+        setTimeout(function () { splash.style.display = "none"; }, 400);
+      }
+
+      // L'agenda avvisa quando ha finito di caricarsi.
+      window.addEventListener("message", function (evento) {
+        var dati = evento.data;
+        var host = "";
+        try { host = new URL(evento.origin).hostname; } catch (errore) {}
+        var origineGoogle = /(^|\.)googleusercontent\.com$/.test(host) || host === "script.google.com";
+        if (origineGoogle && dati && dati.tipo === "agenda-pronta") nascondi();
+      });
+
+      // Se per qualche motivo l'avviso non arriva, la schermata di attesa sparisce comunque.
+      agenda.addEventListener("load", function () { setTimeout(nascondi, 2500); });
+      setTimeout(nascondi, 10000);
+    })();
+  </script>
 </body>
 </html>
